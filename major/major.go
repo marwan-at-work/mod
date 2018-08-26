@@ -28,7 +28,7 @@ func Run() {
 		newModPath = getPrevious(modName)
 	}
 
-	c := &packages.Config{Mode: packages.LoadSyntax}
+	c := &packages.Config{Mode: packages.LoadSyntax, Tests: true}
 	pkgs, err := packages.Load(c, "./...")
 	must(err)
 
