@@ -1,9 +1,14 @@
 package main
 
 import (
+	"log"
+
 	"github.com/marwan-at-work/mod/major"
 )
 
 func main() {
-	major.Run()
+	err := major.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
