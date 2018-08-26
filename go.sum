@@ -1,0 +1,4 @@
+github.com/marwan-at-work/vgop v0.0.0-20180824202541-054e5a7d7b48 h1:WQYSnD8UEUB8HDtFHblaYMKwl24N1zpSIsr58tT5k7s=
+github.com/marwan-at-work/vgop v0.0.0-20180824202541-054e5a7d7b48/go.mod h1:8stA9zbQyHdOhHaI1wWiChHxkAslblT3AzKm4y17CRU=
+golang.org/x/tools v0.0.0-20180824175216-6c1c5e93cdc1 h1:EAPsk8kfGCjxQagrkWjzXlUWe2p3gj5MknO+z2o9GKc=
+golang.org/x/tools v0.0.0-20180824175216-6c1c5e93cdc1/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
