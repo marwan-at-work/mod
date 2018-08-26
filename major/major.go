@@ -1,6 +1,7 @@
 package major
 
 import (
+	"flag"
 	"go/format"
 	"io/ioutil"
 	"log"
@@ -15,9 +16,12 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+var tagNum = flag.Int("t", 0, "upgrade to a specific tag version instead of incrementally")
+
 // Run upgrades or downgrades a module path and
 // all of its dependencies.
 func Run() error {
+	flag.Parse()
 	op := getOperation()
 	modFile, err := getModFile()
 	if err != nil {
@@ -58,11 +62,12 @@ func Run() error {
 }
 
 func getOperation() string {
-	if len(os.Args) != 2 {
+	args := flag.Args()
+	if len(args) != 1 {
 		log.Fatal("Use: mod upgrade|downgrade")
 	}
 
-	op := os.Args[1]
+	op := args[0]
 	if op != "upgrade" && op != "downgrade" {
 		log.Fatal("unknown command " + op)
 	}
@@ -74,10 +79,16 @@ func getNext(s string) string {
 	ss := strings.Split(s, "/")
 	num, isMajor := versionSuffix(ss)
 	if !isMajor {
+		if *tagNum != 0 {
+			return s + "/v" + strconv.Itoa(*tagNum)
+		}
 		return s + "/v2"
 	}
 
 	newV := num + 1
+	if *tagNum != 0 {
+		newV = *tagNum
+	}
 	return strings.Join(ss[:len(ss)-1], "/") + "/v" + strconv.Itoa(newV)
 }
 

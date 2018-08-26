@@ -9,7 +9,7 @@ There are two good use cases to do this:
 1. If you own a library and you want to introduce a breaking change, then you have to go around all your Go files and sub-pacakges and update the import paths to include v2, v3, etc. This tool just does it automatically with one command. 
 
 2. If you own a library that is already tagged v2 or above but is incompatible with Semantic Import Versioning, then 
-this tool can solve the problem for you with one command as well. Introduce a go.mod file with the correct import path, and just run `mod upgrade` once or N times to update the import paths of your go files to match whatver tag you're at. 
+this tool can solve the problem for you with one command as well. Introduce a go.mod file with the correct import path, and just run `mod upgrade` once or `mod -t=X upgrade` (where x is the latest tag major) to update the import paths of your go files to match whatever tag you're at.
 
 ### Install
 
