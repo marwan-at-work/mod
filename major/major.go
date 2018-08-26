@@ -1,7 +1,7 @@
 package major
 
 import (
-	"go/printer"
+	"go/format"
 	"io/ioutil"
 	"log"
 	"os"
@@ -34,14 +34,6 @@ func Run() {
 
 	for _, p := range pkgs {
 		updateImportPath(p, modName, newModPath)
-		for _, syn := range p.Syntax {
-			goFileName := p.Fset.File(syn.Pos()).Name()
-			f, err := os.Create(goFileName)
-			must(err)
-			err = printer.Fprint(f, p.Fset, syn)
-			f.Close()
-			must(err)
-		}
 	}
 	modFile.Module.Syntax.Token[1] = newModPath
 	bts, err := modFile.Format()
@@ -105,13 +97,27 @@ func getPrevious(s string) string {
 
 func updateImportPath(p *packages.Package, old, new string) {
 	for _, syn := range p.Syntax {
+		var rewritten bool
 		for _, i := range syn.Imports {
 			imp := strings.Replace(i.Path.Value, `"`, ``, 2)
 			if strings.HasPrefix(imp, old) {
 				newImp := strings.Replace(imp, old, new, 1)
-				astutil.RewriteImport(p.Fset, syn, imp, newImp)
+				rewrote := astutil.RewriteImport(p.Fset, syn, imp, newImp)
+				if rewrote {
+					rewritten = true
+				}
 			}
 		}
+		if !rewritten {
+			continue
+		}
+
+		goFileName := p.Fset.File(syn.Pos()).Name()
+		f, err := os.Create(goFileName)
+		must(err)
+		err = format.Node(f, p.Fset, syn)
+		f.Close()
+		must(err)
 	}
 }
 
