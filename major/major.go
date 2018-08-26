@@ -38,8 +38,9 @@ func Run() {
 			goFileName := p.Fset.File(syn.Pos()).Name()
 			f, err := os.Create(goFileName)
 			must(err)
-			defer f.Close()
-			must(printer.Fprint(f, p.Fset, syn))
+			err = printer.Fprint(f, p.Fset, syn)
+			f.Close()
+			must(err)
 		}
 	}
 	modFile.Module.Syntax.Token[1] = newModPath
