@@ -34,7 +34,7 @@ func main() {
 				Action:      downgrade,
 			},
 			{
-				Name:        "community-migrate",
+				Name:        "migrate-deps",
 				Usage:       "mod community-migrate -token=<github-token>",
 				Description: "migrate your +incompatiable dependencies to Go Modules",
 				Action:      migrateDeps,
