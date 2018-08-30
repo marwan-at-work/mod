@@ -37,7 +37,7 @@ var upDownCases = []struct {
 func TestGetNext(t *testing.T) {
 	for _, tc := range upDownCases {
 		t.Run(tc.name, func(t *testing.T) {
-			next := getNext(tc.input)
+			next := getNext(0, tc.input)
 			if next != tc.next {
 				t.Fatalf("expected getNext to return %v but got %v", tc.next, next)
 			}

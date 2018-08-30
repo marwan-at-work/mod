@@ -10,20 +10,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/marwan-at-work/vgop/modfile"
+	"github.com/marwan-at-work/mod"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
 )
 
-var tagNum = flag.Int("t", 0, "upgrade to a specific tag version instead of incrementally")
-
 // Run upgrades or downgrades a module path and
 // all of its dependencies.
-func Run() error {
-	flag.Parse()
-	op := getOperation()
-	modFile, err := getModFile()
+func Run(dir, op string, tag int) error {
+	modFile, err := mod.GetModFile(dir)
 	if err != nil {
 		return errors.Wrap(err, "could not get go.mod file")
 	}
@@ -31,12 +27,12 @@ func Run() error {
 	var newModPath string
 	switch op {
 	case "upgrade":
-		newModPath = getNext(modName)
+		newModPath = getNext(tag, modName)
 	case "downgrade":
 		newModPath = getPrevious(modName)
 	}
 
-	c := &packages.Config{Mode: packages.LoadSyntax, Tests: true}
+	c := &packages.Config{Mode: packages.LoadSyntax, Tests: true, Dir: dir}
 	pkgs, err := packages.Load(c, "./...")
 	if err != nil {
 		return errors.Wrap(err, "could not load package")
@@ -53,7 +49,7 @@ func Run() error {
 	if err != nil {
 		return errors.Wrap(err, "could not format go.mod file with new import path")
 	}
-	err = ioutil.WriteFile("go.mod", bts, 0660)
+	err = ioutil.WriteFile(filepath.Join(dir, "go.mod"), bts, 0660)
 	if err != nil {
 		return errors.Wrap(err, "could not rewrite go.mod file")
 	}
@@ -75,19 +71,19 @@ func getOperation() string {
 	return op
 }
 
-func getNext(s string) string {
+func getNext(tagNum int, s string) string {
 	ss := strings.Split(s, "/")
 	num, isMajor := versionSuffix(ss)
 	if !isMajor {
-		if *tagNum != 0 {
-			return s + "/v" + strconv.Itoa(*tagNum)
+		if tagNum != 0 {
+			return s + "/v" + strconv.Itoa(tagNum)
 		}
 		return s + "/v2"
 	}
 
 	newV := num + 1
-	if *tagNum != 0 {
-		newV = *tagNum
+	if tagNum != 0 {
+		newV = tagNum
 	}
 	return strings.Join(ss[:len(ss)-1], "/") + "/v" + strconv.Itoa(newV)
 }
@@ -152,20 +148,4 @@ func updateImportPath(p *packages.Package, old, new string) error {
 	}
 
 	return nil
-}
-
-func getModFile() (*modfile.File, error) {
-	bts, err := ioutil.ReadFile("go.mod")
-	if err != nil {
-		return nil, errors.Wrap(err, "could not open go.mod file")
-	}
-	dir, err := os.Getwd()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get CWD")
-	}
-	f, err := modfile.Parse(filepath.Join(dir, "go.mod"), bts, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not parse go.mod file")
-	}
-	return f, nil
 }
