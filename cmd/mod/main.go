@@ -47,6 +47,10 @@ func main() {
 						Aliases: []string{"l"},
 						Value:   -1,
 					},
+					&cli.BoolFlag{
+						Name:  "test",
+						Value: false,
+					},
 				},
 			},
 		},
@@ -64,5 +68,5 @@ func downgrade(c *cli.Context) error {
 }
 
 func migrateDeps(c *cli.Context) error {
-	return migrate.Run(c.String("token"), c.Int("limit"))
+	return migrate.Run(c.String("token"), c.Int("limit"), c.Bool("test"))
 }

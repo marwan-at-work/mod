@@ -28,7 +28,7 @@ import (
 // Run looks into the CWD go.mod file,
 // clones all +incompatible dependencies
 // and migrates them on your behalf to Go Modules.
-func Run(githubToken string, limit int) error {
+func Run(githubToken string, limit int, test bool) error {
 	f, err := mod.GetModFile(".")
 	if err != nil {
 		return errors.Wrap(err, "could not get mod file")
@@ -46,7 +46,7 @@ func Run(githubToken string, limit int) error {
 			}
 			count++
 			go func(r *modfile.Require) {
-				err := migrate(r.Mod.Path, gc)
+				err := migrate(r.Mod.Path, gc, test)
 				pch <- resp{err, "https://" + r.Mod.Path}
 			}(r)
 		}
@@ -73,7 +73,7 @@ type resp struct {
 	url string
 }
 
-func migrate(path string, gc *github.Client) error {
+func migrate(path string, gc *github.Client, test bool) error {
 	fmt.Printf("git clone %v\n", path)
 	tempdir, err := ioutil.TempDir("", strings.Replace(path, "/", "_", -1))
 	if err != nil {
@@ -148,6 +148,10 @@ func migrate(path string, gc *github.Client) error {
 	err = push(dir)
 	if err != nil {
 		errors.Wrap(err, "error pushing to github")
+	}
+
+	if test {
+		fmt.Println(gc.Repositories.Delete(context.Background(), "marwan-at-work", repo))
 	}
 
 	return nil
