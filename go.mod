@@ -12,5 +12,3 @@ require (
 	golang.org/x/tools v0.0.0-20180824175216-6c1c5e93cdc1
 	gopkg.in/urfave/cli.v2 v2.0.0-20180128182452-d3ae77c26ac8
 )
-
-replace golang.org/x/tools => /Users/208581/gohack/golang.org/x/tools
