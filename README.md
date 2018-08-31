@@ -13,7 +13,7 @@ this tool can solve the problem for you with one command as well. Introduce a go
 
 ### Install
 
-`go get github.com/marwan-at-work/mod`
+`go get github.com/marwan-at-work/mod/cmd/mod`
 
 ### Usage
 
