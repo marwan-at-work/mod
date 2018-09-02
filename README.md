@@ -17,7 +17,7 @@ this tool can solve the problem for you with one command as well. Introduce a go
 
 ### Usage
 
-`mod upgrade` OR `mod downgrade` from any direcory that has go.mod file.
+`mod upgrade` OR `mod downgrade` from any directory that has go.mod file.
 
 
 The tool will update the major version in the go.mod file and it will 
