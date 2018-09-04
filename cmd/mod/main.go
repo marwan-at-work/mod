@@ -18,7 +18,7 @@ func main() {
 				Name:        "upgrade",
 				Usage:       "mod upgrade [-t]",
 				Description: "upgrade go.mod and imports one major or through -t",
-				Action:      upgrade,
+				Action:      withExit(upgrade),
 				Flags: []cli.Flag{
 					&cli.IntFlag{
 						Name:    "tag",
@@ -31,13 +31,13 @@ func main() {
 				Name:        "downgrade",
 				Usage:       "mod downgrade",
 				Description: "downgrade go.mod and imports one major version",
-				Action:      downgrade,
+				Action:      withExit(downgrade),
 			},
 			{
 				Name:        "migrate-deps",
 				Usage:       "mod community-migrate -token=<github-token>",
 				Description: "migrate your +incompatiable dependencies to Go Modules",
-				Action:      migrateDeps,
+				Action:      withExit(migrateDeps),
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name: "token",
@@ -69,4 +69,18 @@ func downgrade(c *cli.Context) error {
 
 func migrateDeps(c *cli.Context) error {
 	return migrate.Run(c.String("token"), c.Int("limit"), c.Bool("test"))
+}
+
+func withExit(f cli.ActionFunc) cli.ActionFunc {
+	return func(c *cli.Context) error {
+		return handleErr(f(c))
+	}
+}
+
+func handleErr(err error) error {
+	if err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	return nil
 }
