@@ -72,4 +72,4 @@ and notice how the import paths and the module name alike get updated.
 
 ## Status
 
-WIP 
+Works as intended. Feel free to report any issues.
