@@ -1,0 +1,7 @@
+package {{ .PackageName }}
+
+import "{{ .ImportPath }}"
+
+func ExportedFunction1() string {
+    return {{ .ModuleName }}.F1()
+}

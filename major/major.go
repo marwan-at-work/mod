@@ -2,18 +2,14 @@ package major
 
 import (
 	"flag"
-	"go/format"
 	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/marwan-at-work/mod"
 	"github.com/pkg/errors"
-	"golang.org/x/tools/go/ast/astutil"
-	"golang.org/x/tools/go/packages"
 )
 
 // Run upgrades or downgrades a module path and
@@ -23,8 +19,11 @@ func Run(dir, op string, tag int) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get go.mod file")
 	}
+
 	modName := modFile.Module.Mod.Path
+
 	var newModPath string
+
 	switch op {
 	case "upgrade":
 		newModPath = getNext(tag, modName)
@@ -32,23 +31,25 @@ func Run(dir, op string, tag int) error {
 		newModPath = getPrevious(modName)
 	}
 
-	c := &packages.Config{Mode: packages.LoadSyntax, Tests: true, Dir: dir}
-	pkgs, err := packages.Load(c, "./...")
+	pkgs, err := mod.LoadPackagesIn(dir, true)
 	if err != nil {
-		return errors.Wrap(err, "could not load package")
+		return errors.Wrap(err, "could not load package syntax")
 	}
 
-	for _, p := range pkgs {
-		err = updateImportPath(p, modName, newModPath)
+	for p := range pkgs {
+		err = mod.UpdateImportPath(p, modName, newModPath)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "could not update import path")
 		}
 	}
+
 	modFile.Module.Syntax.Token[1] = newModPath
+
 	bts, err := modFile.Format()
 	if err != nil {
 		return errors.Wrap(err, "could not format go.mod file with new import path")
 	}
+
 	err = ioutil.WriteFile(filepath.Join(dir, "go.mod"), bts, 0660)
 	if err != nil {
 		return errors.Wrap(err, "could not rewrite go.mod file")
@@ -116,36 +117,4 @@ func getPrevious(s string) string {
 
 	newV := num - 1
 	return strings.Join(ss[:len(ss)-1], "/") + "/v" + strconv.Itoa(newV)
-}
-
-func updateImportPath(p *packages.Package, old, new string) error {
-	for _, syn := range p.Syntax {
-		var rewritten bool
-		for _, i := range syn.Imports {
-			imp := strings.Replace(i.Path.Value, `"`, ``, 2)
-			if strings.HasPrefix(imp, old) {
-				newImp := strings.Replace(imp, old, new, 1)
-				rewrote := astutil.RewriteImport(p.Fset, syn, imp, newImp)
-				if rewrote {
-					rewritten = true
-				}
-			}
-		}
-		if !rewritten {
-			continue
-		}
-
-		goFileName := p.Fset.File(syn.Pos()).Name()
-		f, err := os.Create(goFileName)
-		if err != nil {
-			return errors.Wrapf(err, "could not create go file %v", goFileName)
-		}
-		err = format.Node(f, p.Fset, syn)
-		f.Close()
-		if err != nil {
-			return errors.Wrapf(err, "could not rewrite go file %v", goFileName)
-		}
-	}
-
-	return nil
 }

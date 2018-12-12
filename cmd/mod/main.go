@@ -3,10 +3,11 @@ package main
 import (
 	"os"
 
+	"github.com/marwan-at-work/mod/fork"
+	"github.com/marwan-at-work/mod/major"
 	"github.com/marwan-at-work/mod/migrate"
 
-	"github.com/marwan-at-work/mod/major"
-	"gopkg.in/urfave/cli.v2"
+	cli "gopkg.in/urfave/cli.v2"
 )
 
 func main() {
@@ -53,6 +54,26 @@ func main() {
 					},
 				},
 			},
+			{
+				Name:        "fork",
+				Usage:       "mod fork <command> <args>",
+				Description: "commands for migrating forked libraries",
+				Subcommands: []*cli.Command{
+					{
+						Name:        "rewrite",
+						Usage:       "mod fork rewrite <src-repo-import-path-to-overwrite>",
+						Description: "rewrite import paths in all .go source files to point to a forked repository import path",
+						Action:      withExit(rewriteFork),
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:    "root",
+								Aliases: []string{"r"},
+								Value:   "./",
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 
@@ -69,6 +90,10 @@ func downgrade(c *cli.Context) error {
 
 func migrateDeps(c *cli.Context) error {
 	return migrate.Run(c.String("token"), c.Int("limit"), c.Bool("test"))
+}
+
+func rewriteFork(c *cli.Context) error {
+	return fork.Run(c.String("root"), c.Args().First())
 }
 
 func withExit(f cli.ActionFunc) cli.ActionFunc {
