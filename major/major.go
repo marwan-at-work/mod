@@ -19,9 +19,11 @@ import (
 
 // Run upgrades or downgrades a module path and
 // all of its dependencies.
-func Run(dir, op, modName string, client bool, tag int) error {
+func Run(dir, op, modName string, tag int) error {
+	var client bool
 	var modFile *modfile.File
 	if modName == "" {
+		client = true
 		modFile, err := mod.GetModFile(dir)
 		if err != nil {
 			return errors.Wrap(err, "could not get go.mod file")
