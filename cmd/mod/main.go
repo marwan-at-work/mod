@@ -3,9 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/marwan-at-work/mod/migrate"
-
 	"github.com/marwan-at-work/mod/major"
+	"github.com/marwan-at-work/mod/migrate"
 	"gopkg.in/urfave/cli.v2"
 )
 
@@ -24,6 +23,14 @@ func main() {
 						Name:    "tag",
 						Aliases: []string{"t"},
 						Value:   0,
+					},
+					&cli.BoolFlag{
+						Name:  "client",
+						Value: false,
+					},
+					&cli.StringFlag{
+						Name:  "mod-name",
+						Value: "",
 					},
 				},
 			},
@@ -60,11 +67,11 @@ func main() {
 }
 
 func upgrade(c *cli.Context) error {
-	return major.Run(".", "upgrade", c.Int("tag"))
+	return major.Run(".", "upgrade", c.String("mod-name"), c.Bool("client"), c.Int("tag"))
 }
 
 func downgrade(c *cli.Context) error {
-	return major.Run(".", "downgrade", 0)
+	return major.Run(".", "downgrade", c.String("mod-name"), c.Bool("client"), 0)
 }
 
 func migrateDeps(c *cli.Context) error {

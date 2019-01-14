@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/marwan-at-work/mod"
+	"github.com/marwan-at-work/vgop/modfile"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
@@ -18,12 +19,15 @@ import (
 
 // Run upgrades or downgrades a module path and
 // all of its dependencies.
-func Run(dir, op string, tag int) error {
-	modFile, err := mod.GetModFile(dir)
-	if err != nil {
-		return errors.Wrap(err, "could not get go.mod file")
+func Run(dir, op, modName string, client bool, tag int) error {
+	var modFile *modfile.File
+	if modName == "" {
+		modFile, err := mod.GetModFile(dir)
+		if err != nil {
+			return errors.Wrap(err, "could not get go.mod file")
+		}
+		modName = modFile.Module.Mod.Path
 	}
-	modName := modFile.Module.Mod.Path
 	var newModPath string
 	switch op {
 	case "upgrade":
@@ -31,18 +35,19 @@ func Run(dir, op string, tag int) error {
 	case "downgrade":
 		newModPath = getPrevious(modName)
 	}
-
 	c := &packages.Config{Mode: packages.LoadSyntax, Tests: true, Dir: dir}
 	pkgs, err := packages.Load(c, "./...")
 	if err != nil {
 		return errors.Wrap(err, "could not load package")
 	}
-
 	for _, p := range pkgs {
 		err = updateImportPath(p, modName, newModPath)
 		if err != nil {
 			return err
 		}
+	}
+	if client {
+		return nil
 	}
 	modFile.Module.Syntax.Token[1] = newModPath
 	bts, err := modFile.Format()
@@ -53,7 +58,6 @@ func Run(dir, op string, tag int) error {
 	if err != nil {
 		return errors.Wrap(err, "could not rewrite go.mod file")
 	}
-
 	return nil
 }
 
