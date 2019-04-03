@@ -20,14 +20,14 @@ import (
 // Run upgrades or downgrades a module path and
 // all of its dependencies.
 func Run(dir, op, modName string, tag int) error {
-	var client bool
+	client := true
 	var modFile *modfile.File
+	modFile, err := mod.GetModFile(dir)
+	if err != nil {
+		return errors.Wrap(err, "could not get go.mod file")
+	}
 	if modName == "" {
-		client = true
-		modFile, err := mod.GetModFile(dir)
-		if err != nil {
-			return errors.Wrap(err, "could not get go.mod file")
-		}
+		client = false
 		modName = modFile.Module.Mod.Path
 	}
 	var newModPath string
@@ -49,9 +49,11 @@ func Run(dir, op, modName string, tag int) error {
 		}
 	}
 	if client {
+		// TODO: update require clause in go.mod file
 		return nil
+	} else {
+		modFile.Module.Syntax.Token[1] = newModPath
 	}
-	modFile.Module.Syntax.Token[1] = newModPath
 	bts, err := modFile.Format()
 	if err != nil {
 		return errors.Wrap(err, "could not format go.mod file with new import path")
