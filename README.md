@@ -70,6 +70,16 @@ You can of course, downgrade again or upgrade more incrementally.
 You can also run this command inside the example folder 
 and notice how the import paths and the module name alike get updated.
 
+#### Upgrading a dependency
+
+Say you are using a dependency like `github.com/x/y/v2` and you want to use the new major version they just released. You don't want to change your own import paths, but you want to change the import paths of a dependency you're using from `v2` to `v3`. 
+
+All you have to do is 
+
+```
+mod upgrade --mod-name=github.com/x/y
+```
+
 ## Status
 
 Works as intended. Feel free to report any issues.
