@@ -19,7 +19,7 @@ import (
 
 // Run upgrades or downgrades a module path and
 // all of its dependencies.
-func Run(dir, op, modName string, tag int) error {
+func Run(dir, op, modName string, tag int, buildFlags []string) error {
 	client := true
 	var modFile *modfile.File
 	modFile, err := mod.GetModFile(dir)
@@ -37,7 +37,7 @@ func Run(dir, op, modName string, tag int) error {
 	case "downgrade":
 		newModPath = getPrevious(modName)
 	}
-	c := &packages.Config{Mode: packages.LoadSyntax, Tests: true, Dir: dir}
+	c := &packages.Config{Mode: packages.LoadSyntax, Tests: true, Dir: dir, BuildFlags: buildFlags}
 	pkgs, err := packages.Load(c, "./...")
 	if err != nil {
 		return errors.Wrap(err, "could not load package")

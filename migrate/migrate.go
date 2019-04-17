@@ -103,7 +103,7 @@ func migrate(path string, gc *github.Client, test bool) error {
 	}
 	t := getTag(dir)
 	fmt.Printf("upgrading %v to v%v\n", path, t)
-	if err := major.Run(dir, "upgrade", "", t); err != nil {
+	if err := major.Run(dir, "upgrade", "", t, nil); err != nil {
 		return errors.Wrap(err, "err upgrading import paths")
 	}
 

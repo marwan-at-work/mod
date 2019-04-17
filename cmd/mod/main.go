@@ -9,9 +9,14 @@ import (
 )
 
 func main() {
+	buildFlags := &cli.StringSliceFlag{
+		Name:  "buildflags",
+		Usage: "build flags to pass to the go compiler. Most commonly use for build flags ie. 'mod upgrade -buildflags=-tags=dev'",
+	}
 	app := &cli.App{
 		Name:  "mod",
 		Usage: "upgrade/downgrade semantic import versioning",
+		Flags: []cli.Flag{buildFlags},
 		Commands: []*cli.Command{
 			{
 				Name:        "upgrade",
@@ -28,6 +33,7 @@ func main() {
 						Name:  "mod-name",
 						Value: "",
 					},
+					buildFlags,
 				},
 			},
 			{
@@ -35,10 +41,11 @@ func main() {
 				Usage:       "mod downgrade",
 				Description: "downgrade go.mod and imports one major version",
 				Action:      withExit(downgrade),
+				Flags:       []cli.Flag{buildFlags},
 			},
 			{
 				Name:        "migrate-deps",
-				Usage:       "mod community-migrate -token=<github-token>",
+				Usage:       "mod migrate-deps -token=<github-token>",
 				Description: "migrate your +incompatiable dependencies to Go Modules",
 				Action:      withExit(migrateDeps),
 				Flags: []cli.Flag{
@@ -63,11 +70,11 @@ func main() {
 }
 
 func upgrade(c *cli.Context) error {
-	return major.Run(".", "upgrade", c.String("mod-name"), c.Int("tag"))
+	return major.Run(".", "upgrade", c.String("mod-name"), c.Int("tag"), c.StringSlice("buildflags"))
 }
 
 func downgrade(c *cli.Context) error {
-	return major.Run(".", "downgrade", c.String("mod-name"), 0)
+	return major.Run(".", "downgrade", c.String("mod-name"), 0, c.StringSlice("buildflags"))
 }
 
 func migrateDeps(c *cli.Context) error {
