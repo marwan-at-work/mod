@@ -83,3 +83,13 @@ mod upgrade --mod-name=github.com/x/y
 ## Status
 
 Works as intended. Feel free to report any issues.
+
+### Troubleshooting
+
+If you are using iTerm2 and see this error: 
+
+```
+<html><head></head><body><p><em>Error:</em> Your request has found no candidate provider [hs="(null)", id="(null)"]</p></body</html>
+```
+
+Make sure you close iTerm2 and start again. See https://github.com/marwan-at-work/mod/issues/3 for details. 
