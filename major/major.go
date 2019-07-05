@@ -2,6 +2,7 @@ package major
 
 import (
 	"flag"
+	"fmt"
 	"go/format"
 	"io/ioutil"
 	"log"
@@ -131,7 +132,7 @@ func updateImportPath(p *packages.Package, old, new string) error {
 		var rewritten bool
 		for _, i := range syn.Imports {
 			imp := strings.Replace(i.Path.Value, `"`, ``, 2)
-			if strings.HasPrefix(imp, old) {
+			if strings.HasPrefix(imp, fmt.Sprintf("%s/", old)) || imp == old {
 				newImp := strings.Replace(imp, old, new, 1)
 				rewrote := astutil.RewriteImport(p.Fset, syn, imp, newImp)
 				if rewrote {
