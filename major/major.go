@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/marwan-at-work/mod"
-	"github.com/marwan-at-work/vgop/modfile"
 	"github.com/pkg/errors"
+	"golang.org/x/mod/modfile"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
 )

@@ -4,8 +4,9 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/marwan-at-work/vgop/modfile"
+	// "github.com/marwan-at-work/vgop/modfile"
 	"github.com/pkg/errors"
+	"golang.org/x/mod/modfile"
 )
 
 // GetModFile returns an AST of the given directory's go.mod file

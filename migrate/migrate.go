@@ -19,9 +19,9 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/marwan-at-work/mod"
 	"github.com/marwan-at-work/mod/major"
-	"github.com/marwan-at-work/vgop/modfile"
-	"github.com/marwan-at-work/vgop/semver"
 	"github.com/pkg/errors"
+	"golang.org/x/mod/modfile"
+	"golang.org/x/mod/semver"
 	"golang.org/x/oauth2"
 )
 
