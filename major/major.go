@@ -43,8 +43,14 @@ func Run(dir, op, modName string, tag int, buildFlags []string) error {
 	if err != nil {
 		return errors.Wrap(err, "could not load package")
 	}
+	ids := map[string]struct{}{}
+	files := map[string]struct{}{}
 	for _, p := range pkgs {
-		err = updateImportPath(p, modName, newModPath)
+		if _, ok := ids[p.ID]; ok {
+			continue
+		}
+		ids[p.ID] = struct{}{}
+		err = updateImportPath(p, modName, newModPath, files)
 		if err != nil {
 			return err
 		}
@@ -127,8 +133,13 @@ func getPrevious(s string) string {
 	return strings.Join(ss[:len(ss)-1], "/") + "/v" + strconv.Itoa(newV)
 }
 
-func updateImportPath(p *packages.Package, old, new string) error {
+func updateImportPath(p *packages.Package, old, new string, files map[string]struct{}) error {
 	for _, syn := range p.Syntax {
+		goFileName := p.Fset.File(syn.Pos()).Name()
+		if _, ok := files[goFileName]; ok {
+			continue
+		}
+		files[goFileName] = struct{}{}
 		var rewritten bool
 		for _, i := range syn.Imports {
 			imp := strings.Replace(i.Path.Value, `"`, ``, 2)
@@ -144,7 +155,6 @@ func updateImportPath(p *packages.Package, old, new string) error {
 			continue
 		}
 
-		goFileName := p.Fset.File(syn.Pos()).Name()
 		f, err := os.Create(goFileName)
 		if err != nil {
 			return errors.Wrapf(err, "could not create go file %v", goFileName)
