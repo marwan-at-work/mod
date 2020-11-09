@@ -5,7 +5,7 @@ import (
 
 	"github.com/marwan-at-work/mod/major"
 	"github.com/marwan-at-work/mod/migrate"
-	"gopkg.in/urfave/cli.v2"
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
