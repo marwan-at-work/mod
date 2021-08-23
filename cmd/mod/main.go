@@ -41,7 +41,13 @@ func main() {
 				Usage:       "mod downgrade",
 				Description: "downgrade go.mod and imports one major version",
 				Action:      withExit(downgrade),
-				Flags:       []cli.Flag{buildFlags},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "mod-name",
+						Value: "",
+					},
+					buildFlags,
+				},
 			},
 			{
 				Name:        "migrate-deps",

@@ -80,6 +80,16 @@ All you have to do is
 mod upgrade --mod-name=github.com/x/y
 ```
 
+#### Downgrading a dependency
+
+Say you are using a dependency like `github.com/x/y/v3` and you want to use the previous major version. You don't want to change your own import paths, but you want to change the import paths of a dependency you're using from `v3` to `v2`.
+
+All you have to do is
+
+```
+mod downgrade --mod-name=github.com/x/y
+```
+
 ## Status
 
 Works as intended. Feel free to report any issues.
