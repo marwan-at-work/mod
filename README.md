@@ -13,7 +13,7 @@ this tool can solve the problem for you with one command as well. Introduce a go
 
 ### Install
 
-`GO111MODULE=on go install github.com/marwan-at-work/mod/cmd/mod@latest`
+`go install github.com/marwan-at-work/mod/cmd/mod@latest`
 
 ### Usage
 
