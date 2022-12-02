@@ -1,6 +1,8 @@
 package major
 
-import "testing"
+import (
+	"testing"
+)
 
 var upDownCases = []struct {
 	name  string
@@ -32,16 +34,35 @@ var upDownCases = []struct {
 		"mod/sub/v100",
 		"mod/sub/v98",
 	},
+	{
+		"gopkg.in v0",
+		"gopkg.in/yaml.v0",
+		"gopkg.in/yaml.v1",
+		"gopkg.in/yaml.v0",
+	},
+	{
+		"gopkg.in v1",
+		"gopkg.in/yaml.v1",
+		"gopkg.in/yaml.v2",
+		"gopkg.in/yaml.v0",
+	},
+	{
+		"gopkg.in v2",
+		"gopkg.in/yaml.v2",
+		"gopkg.in/yaml.v3",
+		"gopkg.in/yaml.v1",
+	},
 }
 
 func TestGetNext(t *testing.T) {
 	for _, tc := range upDownCases {
 		t.Run(tc.name, func(t *testing.T) {
-			next := getNext(0, tc.input)
+			sep := getSeparator(tc.input)
+			next := getNext(0, tc.input, sep)
 			if next != tc.next {
 				t.Fatalf("expected getNext to return %v but got %v", tc.next, next)
 			}
-			prev := getPrevious(tc.input)
+			prev := getPrevious(tc.input, sep)
 			if prev != tc.prev {
 				t.Fatalf("expected getPrevious to return %v but got %v", tc.prev, prev)
 			}
