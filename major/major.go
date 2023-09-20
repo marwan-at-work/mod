@@ -4,7 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"go/format"
-	"io/ioutil"
+	"go/parser"
+	"go/token"
 	"log"
 	"os"
 	"path/filepath"
@@ -20,7 +21,8 @@ import (
 
 // Run upgrades or downgrades a module path and
 // all of its dependencies.
-func Run(dir, op, modName string, tag int, buildFlags []string) error {
+func Run(dir, op, modName string, tag int) error {
+
 	client := true
 	var modFile *modfile.File
 	modFile, err := mod.GetModFile(dir)
@@ -39,7 +41,7 @@ func Run(dir, op, modName string, tag int, buildFlags []string) error {
 	case "downgrade":
 		newModPath = getPrevious(modName, separator)
 	}
-	c := &packages.Config{Mode: packages.LoadSyntax, Tests: true, Dir: dir, BuildFlags: buildFlags}
+	c := &packages.Config{Mode: packages.NeedName | packages.NeedFiles, Tests: true, Dir: dir}
 	pkgs, err := packages.Load(c, "./...")
 	if err != nil {
 		return errors.Wrap(err, "could not load package")
@@ -66,7 +68,7 @@ func Run(dir, op, modName string, tag int, buildFlags []string) error {
 	if err != nil {
 		return errors.Wrap(err, "could not format go.mod file with new import path")
 	}
-	err = ioutil.WriteFile(filepath.Join(dir, "go.mod"), bts, 0660)
+	err = os.WriteFile(filepath.Join(dir, "go.mod"), bts, 0660)
 	if err != nil {
 		return errors.Wrap(err, "could not rewrite go.mod file")
 	}
@@ -146,18 +148,27 @@ func getPrevious(s, sep string) string {
 }
 
 func updateImportPath(p *packages.Package, old, new, sep string, files map[string]struct{}) error {
-	for _, syn := range p.Syntax {
-		goFileName := p.Fset.File(syn.Pos()).Name()
+
+	goFileNames := append(p.GoFiles, p.IgnoredFiles...)
+	for _, goFileName := range goFileNames {
+
 		if _, ok := files[goFileName]; ok {
 			continue
 		}
 		files[goFileName] = struct{}{}
+
+		fset := token.NewFileSet()
+		parsed, err := parser.ParseFile(fset, goFileName, nil, parser.ParseComments)
+		if err != nil {
+			return errors.Wrapf(err, "could not parse go file %v", goFileName)
+		}
+
 		var rewritten bool
-		for _, i := range syn.Imports {
+		for _, i := range parsed.Imports {
 			imp := strings.Replace(i.Path.Value, `"`, ``, 2)
 			if strings.HasPrefix(imp, fmt.Sprintf("%s%s", old, sep)) || imp == old {
 				newImp := strings.Replace(imp, old, new, 1)
-				rewrote := astutil.RewriteImport(p.Fset, syn, imp, newImp)
+				rewrote := astutil.RewriteImport(fset, parsed, imp, newImp)
 				if rewrote {
 					rewritten = true
 				}
@@ -171,7 +182,7 @@ func updateImportPath(p *packages.Package, old, new, sep string, files map[strin
 		if err != nil {
 			return errors.Wrapf(err, "could not create go file %v", goFileName)
 		}
-		err = format.Node(f, p.Fset, syn)
+		err = format.Node(f, fset, parsed)
 		f.Close()
 		if err != nil {
 			return errors.Wrapf(err, "could not rewrite go file %v", goFileName)

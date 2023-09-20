@@ -9,14 +9,9 @@ import (
 )
 
 func main() {
-	buildFlags := &cli.StringSliceFlag{
-		Name:  "buildflags",
-		Usage: "build flags to pass to the go compiler. Most commonly use for build flags ie. 'mod upgrade -buildflags=-tags=dev'",
-	}
 	app := &cli.App{
 		Name:  "mod",
 		Usage: "upgrade/downgrade semantic import versioning",
-		Flags: []cli.Flag{buildFlags},
 		Commands: []*cli.Command{
 			{
 				Name:        "upgrade",
@@ -33,7 +28,6 @@ func main() {
 						Name:  "mod-name",
 						Value: "",
 					},
-					buildFlags,
 				},
 			},
 			{
@@ -46,7 +40,6 @@ func main() {
 						Name:  "mod-name",
 						Value: "",
 					},
-					buildFlags,
 				},
 			},
 			{
@@ -76,11 +69,11 @@ func main() {
 }
 
 func upgrade(c *cli.Context) error {
-	return major.Run(".", "upgrade", c.String("mod-name"), c.Int("tag"), c.StringSlice("buildflags"))
+	return major.Run(".", "upgrade", c.String("mod-name"), c.Int("tag"))
 }
 
 func downgrade(c *cli.Context) error {
-	return major.Run(".", "downgrade", c.String("mod-name"), 0, c.StringSlice("buildflags"))
+	return major.Run(".", "downgrade", c.String("mod-name"), 0)
 }
 
 func migrateDeps(c *cli.Context) error {
