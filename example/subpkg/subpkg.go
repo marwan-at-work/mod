@@ -1,3 +1,5 @@
+//go:build something
+
 package subpkg
 
 import (
