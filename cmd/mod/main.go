@@ -3,9 +3,10 @@ package main
 import (
 	"os"
 
+	"github.com/urfave/cli/v2"
+
 	"github.com/marwan-at-work/mod/major"
 	"github.com/marwan-at-work/mod/migrate"
-	"github.com/urfave/cli/v2"
 )
 
 func main() {

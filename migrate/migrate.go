@@ -16,13 +16,14 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/google/go-github/github"
-	"github.com/marwan-at-work/mod"
-	"github.com/marwan-at-work/mod/major"
+	"github.com/google/go-github/v52/github"
 	"github.com/pkg/errors"
 	"golang.org/x/mod/modfile"
 	"golang.org/x/mod/semver"
 	"golang.org/x/oauth2"
+
+	"github.com/marwan-at-work/mod"
+	"github.com/marwan-at-work/mod/major"
 )
 
 // Run looks into the CWD go.mod file,
@@ -33,8 +34,8 @@ func Run(githubToken string, limit int, test bool) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get mod file")
 	}
-	var ts = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: githubToken})
-	var tc = oauth2.NewClient(oauth2.NoContext, ts)
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: githubToken})
+	tc := oauth2.NewClient(oauth2.NoContext, ts)
 	gc := github.NewClient(tc)
 	urls := []string{}
 	var count int
@@ -359,5 +360,5 @@ func rewriteGitIgnore(dir string) error {
 		return errors.Wrap(err, "error while scanning")
 	}
 	f.Close()
-	return ioutil.WriteFile(p, []byte(strings.Join(lines, "\n")+"\n"), 0666)
+	return ioutil.WriteFile(p, []byte(strings.Join(lines, "\n")+"\n"), 0o666)
 }
