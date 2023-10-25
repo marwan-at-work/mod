@@ -1,13 +1,12 @@
 package major
 
 import (
-	"flag"
 	"fmt"
 	"go/format"
 	"go/parser"
 	"go/token"
-	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -60,8 +59,17 @@ func Run(dir, op, modName string, tag int) error {
 		}
 	}
 	if client {
-		// TODO: update require clause in go.mod file
-		return nil
+		// It would be nicer to use modFile.AddRequire
+		// and modFile.DropRequire, but they do not
+		// preserve block location.
+		for _, req := range modFile.Require {
+			if req.Mod.Path == modName {
+				req.Mod.Path = newModPath
+				req.Mod.Version = "latest"
+				break
+			}
+		}
+		modFile.SetRequire(modFile.Require)
 	} else {
 		modFile.Module.Syntax.Token[1] = newModPath
 	}
@@ -72,6 +80,12 @@ func Run(dir, op, modName string, tag int) error {
 	err = os.WriteFile(filepath.Join(dir, "go.mod"), bts, 0660)
 	if err != nil {
 		return errors.Wrap(err, "could not rewrite go.mod file")
+	}
+	if client {
+		fmt.Println("running go mod tidy...")
+		cmd := exec.Command("go", "mod", "tidy")
+		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+		return cmd.Run()
 	}
 	return nil
 }
@@ -85,20 +99,6 @@ func getSeparator(s string) string {
 		return "."
 	}
 	return "/"
-}
-
-func getOperation() string {
-	args := flag.Args()
-	if len(args) != 1 {
-		log.Fatal("Use: mod upgrade|downgrade")
-	}
-
-	op := args[0]
-	if op != "upgrade" && op != "downgrade" {
-		log.Fatal("unknown command " + op)
-	}
-
-	return op
 }
 
 func getNext(tagNum int, s, sep string) string {
