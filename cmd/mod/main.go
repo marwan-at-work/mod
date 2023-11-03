@@ -41,7 +41,7 @@ func main() {
 					&cli.StringFlag{
 						Name:  "mod-name",
 						Value: "",
-						Usage: "upgrade a dependency instead of your main module",
+						Usage: "downgrade a dependency instead of your main module",
 					},
 				},
 			},
