@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -76,7 +75,7 @@ type resp struct {
 
 func migrate(path string, gc *github.Client, test bool) error {
 	fmt.Printf("git clone %v\n", path)
-	tempdir, err := ioutil.TempDir("", strings.Replace(path, "/", "_", -1))
+	tempdir, err := os.MkdirTemp("", strings.Replace(path, "/", "_", -1))
 	if err != nil {
 		return errors.Wrap(err, "tempdir err")
 	}
@@ -168,7 +167,7 @@ func gitclone(url, tempdir string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("output: %s", bts.String())
 	}
-	ff, err := ioutil.ReadDir(tempdir)
+	ff, err := os.ReadDir(tempdir)
 	if err != nil {
 		return "", err
 	}
@@ -360,5 +359,5 @@ func rewriteGitIgnore(dir string) error {
 		return errors.Wrap(err, "error while scanning")
 	}
 	f.Close()
-	return ioutil.WriteFile(p, []byte(strings.Join(lines, "\n")+"\n"), 0o666)
+	return os.WriteFile(p, []byte(strings.Join(lines, "\n")+"\n"), 0o666)
 }
