@@ -1,4 +1,4 @@
-# .github/workflows/release.yaml
+name: "Build Go binary"
 
 on:
   release:
@@ -29,4 +29,6 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
+        project_path: "./cmd/mod"
+        binary_name: "mod"
         extra_files: LICENSE README.md
