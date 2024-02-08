@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/marwan-at-work/mod/replace"
 	"github.com/urfave/cli/v2"
 
 	"github.com/marwan-at-work/mod/major"
@@ -65,6 +66,20 @@ func main() {
 					},
 				},
 			},
+			{
+				Name:        "replace",
+				Usage:       "mod replace --mod-old=<ol-module-name> --mod-new=<new-module-name>",
+				Description: "migrate your module that may have changed locations",
+				Action:      withExit(migrateDeps),
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name: "mod-old",
+					},
+					&cli.StringFlag{
+						Name: "mod-new",
+					},
+				},
+			},
 		},
 	}
 
@@ -81,6 +96,10 @@ func downgrade(c *cli.Context) error {
 
 func migrateDeps(c *cli.Context) error {
 	return migrate.Run(c.String("token"), c.Int("limit"), c.Bool("test"))
+}
+
+func replaceDeps(c *cli.Context) error {
+	return replace.Run(".", c.String("mod-old"), c.String("mod-new"))
 }
 
 func withExit(f cli.ActionFunc) cli.ActionFunc {
