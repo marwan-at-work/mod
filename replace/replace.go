@@ -18,6 +18,7 @@ import (
 )
 
 func Run(dir, oldModName string, newModName string) error {
+	fmt.Printf("replace %s by %s", oldModName, newModName)
 	var modFile *modfile.File
 	modFile, err := mod.GetModFile(dir)
 	if err != nil {
@@ -58,7 +59,7 @@ func Run(dir, oldModName string, newModName string) error {
 	if alreadyExists {
 		err = modFile.DropRequire(oldModName)
 		if err != nil {
-			return fmt.Errorf("error dropping %q: %w", oldModName, err)
+			return fmt.Errorf("error dropping %q: %w\n", oldModName, err)
 		}
 	} else {
 		for _, req := range modFile.Require {

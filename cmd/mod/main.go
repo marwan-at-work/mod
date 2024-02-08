@@ -70,13 +70,15 @@ func main() {
 				Name:        "replace",
 				Usage:       "mod replace --mod-old=<ol-module-name> --mod-new=<new-module-name>",
 				Description: "migrate your module that may have changed locations",
-				Action:      withExit(migrateDeps),
+				Action:      withExit(replaceDeps),
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name: "mod-old",
+						Name:     "mod-old",
+						Required: true,
 					},
 					&cli.StringFlag{
-						Name: "mod-new",
+						Name:     "mod-new",
+						Required: true,
 					},
 				},
 			},

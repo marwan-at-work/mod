@@ -60,7 +60,7 @@ func fileCheck(t *testing.T, file, new, old string) {
 	// read the whole file at once
 	b, err := os.ReadFile(file)
 	if err != nil {
-		panic(err)
+		require.NoError(t, err)
 	}
 	s := string(b)
 	// //check whether s contains substring text
