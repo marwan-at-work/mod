@@ -20,6 +20,8 @@ func TestRun(t *testing.T) {
 		name    string
 		args    args
 		wantErr bool
+		// list of file we want to validate for the replacement
+		wantCheckFile []string
 	}{
 		{
 			name: "example1",
@@ -29,6 +31,10 @@ func TestRun(t *testing.T) {
 				newModName: "github.com/xnok/webhooks/v6",
 			},
 			wantErr: false,
+			wantCheckFile: []string{
+				"go.mod",
+				"example.go",
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -40,7 +46,9 @@ func TestRun(t *testing.T) {
 
 				if err := Run(dir, tt.args.oldModName, tt.args.newModName); (err != nil) != tt.wantErr {
 					assert.NoError(t, err)
-					fileCheck(t, path.Join(dir, "go.mod"), tt.args.newModName, tt.args.oldModName)
+					for i := range tt.wantCheckFile {
+						fileCheck(t, path.Join(dir, tt.wantCheckFile[i]), tt.args.newModName, tt.args.oldModName)
+					}
 				}
 			},
 		)
