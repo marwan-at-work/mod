@@ -2,7 +2,7 @@
 
 Command line tool to upgrade/downgrade Semantic Import Versioning in Go Modules
 
-### Motivation 
+## Motivation 
 
 There are two good use cases to do this: 
 
@@ -11,11 +11,13 @@ There are two good use cases to do this:
 2. If you own a library that is already tagged v2 or above but is incompatible with Semantic Import Versioning, then 
 this tool can solve the problem for you with one command as well. Introduce a go.mod file with the correct import path, and just run `mod upgrade` once or `mod -t=X upgrade` (where x is the latest tag major) to update the import paths of your go files to match whatever tag you're at.
 
-### Install
+## Install
 
 `go install github.com/marwan-at-work/mod/cmd/mod@latest`
 
-### Usage
+## Usage
+
+### upgrade/downgrade
 
 `mod upgrade` OR `mod downgrade` from any directory that has go.mod file.
 
@@ -88,6 +90,19 @@ All you have to do is
 
 ```
 mod downgrade --mod-name=github.com/x/y
+```
+
+### migrate
+
+### replace
+
+If the repos location changed (renamed, moving to vanity urls, etc.) you have to update all application depending on 
+that repo. Meaning you have to search and replace all occurrences of the old location by a new one.
+
+This is what this `replace` command does for you.
+
+```
+mod replace --mod-old=github.com/x/y --mod-new=something.com/x/y
 ```
 
 ## Status
