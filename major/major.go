@@ -70,10 +70,7 @@ func Run(dir, op, modName string, tag int) error {
 			}
 		}
 		if majorExists {
-			err = modFile.DropRequire(modName)
-			if err != nil {
-				return fmt.Errorf("error dropping %q: %w", modName, err)
-			}
+			return nil
 		} else {
 			for _, req := range modFile.Require {
 				if req.Mod.Path == modName {
