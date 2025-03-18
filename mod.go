@@ -1,10 +1,10 @@
 package mod
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/pkg/errors"
 	"golang.org/x/mod/modfile"
 )
 
@@ -13,11 +13,11 @@ import (
 func GetModFile(dir string) (*modfile.File, error) {
 	bts, err := os.ReadFile(filepath.Join(dir, "go.mod"))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not open go.mod file")
+		return nil, fmt.Errorf("could not open go.mod file: %w", err)
 	}
 	f, err := modfile.Parse(filepath.Join(dir, "go.mod"), bts, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse go.mod file")
+		return nil, fmt.Errorf("could not parse go.mod file: %w", err)
 	}
 	return f, nil
 }

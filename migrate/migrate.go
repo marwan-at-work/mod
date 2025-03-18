@@ -16,7 +16,6 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/google/go-github/v52/github"
-	"github.com/pkg/errors"
 	"golang.org/x/mod/modfile"
 	"golang.org/x/mod/semver"
 	"golang.org/x/oauth2"
@@ -31,7 +30,7 @@ import (
 func Run(githubToken string, limit int, test bool) error {
 	f, err := mod.GetModFile(".")
 	if err != nil {
-		return errors.Wrap(err, "could not get mod file")
+		return fmt.Errorf("could not get mod file: %w", err)
 	}
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: githubToken})
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
@@ -77,16 +76,16 @@ func migrate(path string, gc *github.Client, test bool) error {
 	fmt.Printf("git clone %v\n", path)
 	tempdir, err := os.MkdirTemp("", strings.Replace(path, "/", "_", -1))
 	if err != nil {
-		return errors.Wrap(err, "tempdir err")
+		return fmt.Errorf("tempdir err: %w", err)
 	}
 	defer os.RemoveAll(tempdir)
 	red, err := deduceVanity(path)
 	if err != nil {
-		return errors.Wrap(err, "error deducing vanity")
+		return fmt.Errorf("error deducing vanity: %w", err)
 	}
 	dir, err := gitclone(red.gitURL, tempdir)
 	if err != nil {
-		return errors.Wrap(err, "error running git clone")
+		return fmt.Errorf("error running git clone: %w", err)
 	}
 	if checkMod(dir) {
 		fmt.Printf("%v already migrated to modules\n", path)
@@ -94,17 +93,17 @@ func migrate(path string, gc *github.Client, test bool) error {
 	}
 	err = modinit(dir, path)
 	if err != nil {
-		return errors.Wrap(err, "err running go mod init")
+		return fmt.Errorf("err running go mod init: %w", err)
 	}
 	fmt.Printf("downloading dependencies for %v\n", path)
 	err = getdeps(dir)
 	if err != nil {
-		return errors.Wrap(err, "err running go get ./...")
+		return fmt.Errorf("err running go get ./...: %w", err)
 	}
 	t := getTag(dir)
 	fmt.Printf("upgrading %v to v%v\n", path, t)
 	if err := major.Run(dir, "upgrade", "", t); err != nil {
-		return errors.Wrap(err, "err upgrading import paths")
+		return fmt.Errorf("err upgrading import paths: %w", err)
 	}
 
 	err = rewriteGitIgnore(dir)
@@ -121,33 +120,33 @@ func migrate(path string, gc *github.Client, test bool) error {
 	owner, repo := ss[1], ss[2]
 	r, _, err := gc.Repositories.CreateFork(context.Background(), owner, repo, &github.RepositoryCreateForkOptions{})
 	if _, ok := err.(*github.AcceptedError); !ok {
-		return errors.Wrap(err, "error creating a fork")
+		return fmt.Errorf("error creating a fork: %w", err)
 	}
 	time.Sleep(time.Second * 2)
 	remote := r.GetCloneURL()
 	err = addRemote(dir, remote)
 	if err != nil {
-		return errors.Wrap(err, "error adding remote")
+		return fmt.Errorf("error adding remote: %w", err)
 	}
 
 	err = checkout(dir)
 	if err != nil {
-		return errors.Wrap(err, "error checking out new branch")
+		return fmt.Errorf("error checking out new branch: %w", err)
 	}
 
 	err = add(dir)
 	if err != nil {
-		errors.Wrap(err, "error tracking files")
+		return fmt.Errorf("error tracking files: %w", err)
 	}
 
 	err = commit(dir)
 	if err != nil {
-		errors.Wrap(err, "error committing changes")
+		return fmt.Errorf("error committing changes: %w", err)
 	}
 
 	err = push(dir)
 	if err != nil {
-		errors.Wrap(err, "error pushing to github")
+		return fmt.Errorf("error pushing to github: %w", err)
 	}
 
 	if test {
@@ -344,7 +343,7 @@ func rewriteGitIgnore(dir string) error {
 		return nil
 	}
 	if err != nil {
-		return errors.Wrap(err, "could not open gitignore")
+		return fmt.Errorf("could not open gitignore: %w", err)
 	}
 	lines := []string{}
 	scnr := bufio.NewScanner(f)
@@ -356,7 +355,7 @@ func rewriteGitIgnore(dir string) error {
 	}
 	if scnr.Err() != nil {
 		f.Close()
-		return errors.Wrap(err, "error while scanning")
+		return fmt.Errorf("error while scanning: %w", err)
 	}
 	f.Close()
 	return os.WriteFile(p, []byte(strings.Join(lines, "\n")+"\n"), 0o666)

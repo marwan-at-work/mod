@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
 	"golang.org/x/mod/modfile"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
@@ -27,7 +26,7 @@ func Run(dir, op, modName string, tag int) error {
 	var modFile *modfile.File
 	modFile, err := mod.GetModFile(dir)
 	if err != nil {
-		return errors.Wrap(err, "could not get go.mod file")
+		return fmt.Errorf("could not get go.mod file: %w", err)
 	}
 	if modName == "" {
 		client = false
@@ -44,7 +43,7 @@ func Run(dir, op, modName string, tag int) error {
 	c := &packages.Config{Mode: packages.NeedName | packages.NeedFiles, Tests: true, Dir: dir}
 	pkgs, err := packages.Load(c, "./...")
 	if err != nil {
-		return errors.Wrap(err, "could not load package")
+		return fmt.Errorf("could not load package: %w", err)
 	}
 	ids := map[string]struct{}{}
 	files := map[string]struct{}{}
@@ -86,11 +85,11 @@ func Run(dir, op, modName string, tag int) error {
 	}
 	bts, err := modFile.Format()
 	if err != nil {
-		return errors.Wrap(err, "could not format go.mod file with new import path")
+		return fmt.Errorf("could not format go.mod file with new import path: %w", err)
 	}
 	err = os.WriteFile(filepath.Join(dir, "go.mod"), bts, 0660)
 	if err != nil {
-		return errors.Wrap(err, "could not rewrite go.mod file")
+		return fmt.Errorf("could not rewrite go.mod file: %w", err)
 	}
 	if client {
 		fmt.Println("running go mod tidy...")
@@ -172,7 +171,7 @@ func updateImportPath(p *packages.Package, old, new, sep string, files map[strin
 		fset := token.NewFileSet()
 		parsed, err := parser.ParseFile(fset, goFileName, nil, parser.ParseComments)
 		if err != nil {
-			return errors.Wrapf(err, "could not parse go file %v", goFileName)
+			return fmt.Errorf("could not parse go file %v: %w", goFileName, err)
 		}
 
 		var rewritten bool
@@ -192,12 +191,12 @@ func updateImportPath(p *packages.Package, old, new, sep string, files map[strin
 
 		f, err := os.Create(goFileName)
 		if err != nil {
-			return errors.Wrapf(err, "could not create go file %v", goFileName)
+			return fmt.Errorf("could not create go file %v: %w", goFileName, err)
 		}
 		err = format.Node(f, fset, parsed)
 		f.Close()
 		if err != nil {
-			return errors.Wrapf(err, "could not rewrite go file %v", goFileName)
+			return fmt.Errorf("could not rewrite go file %v: %w", goFileName, err)
 		}
 	}
 

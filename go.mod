@@ -5,7 +5,6 @@ go 1.23.0
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/google/go-github/v52 v52.0.0
-	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli/v2 v2.25.1
 	golang.org/x/mod v0.24.0
 	golang.org/x/oauth2 v0.7.0
