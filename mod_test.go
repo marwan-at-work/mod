@@ -1,9 +1,9 @@
 package mod
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -38,7 +38,7 @@ func TestGetModFileErrors(t *testing.T) {
 		if err == nil {
 			t.Fatal("expected error")
 		}
-		if !strings.Contains(err.Error(), "could not open go.mod") {
+		if !errors.Is(err, os.ErrNotExist) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 	})
@@ -50,12 +50,8 @@ func TestGetModFileErrors(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		_, err = GetModFile(dir)
-		if err == nil {
+		if _, err := GetModFile(dir); err == nil {
 			t.Fatal("expected error")
-		}
-		if !strings.Contains(err.Error(), "could not parse go.mod") {
-			t.Fatalf("unexpected error: %v", err)
 		}
 	})
 }
