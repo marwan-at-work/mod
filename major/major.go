@@ -162,6 +162,11 @@ func updateImportPath(p *packages.Package, old, new, sep string, files map[strin
 
 	goFileNames := append(p.GoFiles, p.IgnoredFiles...)
 	for _, goFileName := range goFileNames {
+		// The file list can include other files such as C files that cannot be parsed,
+		// skip anything that isn't a .go file.
+		if !strings.HasSuffix(goFileName, ".go") {
+			continue
+		}
 
 		if _, ok := files[goFileName]; ok {
 			continue
