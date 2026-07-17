@@ -40,7 +40,19 @@ func Run(dir, op, modName string, tag int) error {
 	case "downgrade":
 		newModPath = getPrevious(modName, separator)
 	}
-	c := &packages.Config{Mode: packages.NeedName | packages.NeedFiles, Tests: true, Dir: dir}
+	// Force -mod=mod so package loading does not fail on a repository that
+	// vendors its dependencies. During a major upgrade the go.mod already
+	// points at the new /vN path while vendor/modules.txt still records the
+	// old one; under the default -mod=vendor this inconsistency makes
+	// `go list` error out and no imports get rewritten. -mod=mod ignores the
+	// vendor directory for loading, which is all we need to enumerate and
+	// rewrite the source files.
+	c := &packages.Config{
+		Mode:       packages.NeedName | packages.NeedFiles,
+		Tests:      true,
+		Dir:        dir,
+		BuildFlags: []string{"-mod=mod"},
+	}
 	pkgs, err := packages.Load(c, "./...")
 	if err != nil {
 		return fmt.Errorf("could not load package: %w", err)
@@ -173,36 +185,53 @@ func updateImportPath(p *packages.Package, old, new, sep string, files map[strin
 		}
 		files[goFileName] = struct{}{}
 
-		fset := token.NewFileSet()
-		parsed, err := parser.ParseFile(fset, goFileName, nil, parser.ParseComments)
-		if err != nil {
-			return fmt.Errorf("could not parse go file %v: %w", goFileName, err)
+		if err := rewriteFile(goFileName, old, new, sep); err != nil {
+			return err
 		}
+	}
 
-		var rewritten bool
-		for _, i := range parsed.Imports {
-			imp := strings.Replace(i.Path.Value, `"`, ``, 2)
-			if strings.HasPrefix(imp, fmt.Sprintf("%s%s", old, sep)) || imp == old {
-				newImp := strings.Replace(imp, old, new, 1)
-				rewrote := astutil.RewriteImport(fset, parsed, imp, newImp)
-				if rewrote {
-					rewritten = true
-				}
-			}
-		}
-		if !rewritten {
+	return nil
+}
+
+// rewriteFile parses a single .go file and rewrites any import whose path is
+// old or is prefixed by old+sep to the corresponding new path.
+func rewriteFile(goFileName, old, new, sep string) error {
+	fset := token.NewFileSet()
+	parsed, err := parser.ParseFile(fset, goFileName, nil, parser.ParseComments)
+	if err != nil {
+		return fmt.Errorf("could not parse go file %v: %w", goFileName, err)
+	}
+
+	var rewritten bool
+	oldPrefix := old + sep
+	for _, i := range parsed.Imports {
+		imp, err := strconv.Unquote(i.Path.Value)
+		if err != nil {
 			continue
 		}
+		if strings.HasPrefix(imp, oldPrefix) || imp == old {
+			// Only rewrite the leading module-path segment so that a
+			// module path appearing as a non-leading substring is left
+			// untouched.
+			newImp := new + imp[len(old):]
+			rewrote := astutil.RewriteImport(fset, parsed, imp, newImp)
+			if rewrote {
+				rewritten = true
+			}
+		}
+	}
+	if !rewritten {
+		return nil
+	}
 
-		f, err := os.Create(goFileName)
-		if err != nil {
-			return fmt.Errorf("could not create go file %v: %w", goFileName, err)
-		}
-		err = format.Node(f, fset, parsed)
-		f.Close()
-		if err != nil {
-			return fmt.Errorf("could not rewrite go file %v: %w", goFileName, err)
-		}
+	f, err := os.Create(goFileName)
+	if err != nil {
+		return fmt.Errorf("could not create go file %v: %w", goFileName, err)
+	}
+	err = format.Node(f, fset, parsed)
+	f.Close()
+	if err != nil {
+		return fmt.Errorf("could not rewrite go file %v: %w", goFileName, err)
 	}
 
 	return nil
