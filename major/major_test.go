@@ -142,7 +142,7 @@ var _ = unrelated.X
 		}
 	}
 	// A path that merely shares a prefix, and an unrelated path, must be
-	// left untouched (segment-boundary matching, not substring matching).
+	// left untouched: the prefix guard only matches old or old+sep.
 	for _, unchanged := range []string{
 		`"example.com/foo/armnetworkextra/v9"`,
 		`"example.com/bar/v9"`,

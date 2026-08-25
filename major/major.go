@@ -230,10 +230,7 @@ func rewriteFile(goFileName, old, new, sep string) error {
 			continue
 		}
 		if strings.HasPrefix(imp, oldPrefix) || imp == old {
-			// Only rewrite the leading module-path segment so that a
-			// module path appearing as a non-leading substring is left
-			// untouched.
-			newImp := new + imp[len(old):]
+			newImp := strings.Replace(imp, old, new, 1)
 			rewrote := astutil.RewriteImport(fset, parsed, imp, newImp)
 			if rewrote {
 				rewritten = true
