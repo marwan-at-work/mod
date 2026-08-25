@@ -40,13 +40,11 @@ func Run(dir, op, modName string, tag int) error {
 	case "downgrade":
 		newModPath = getPrevious(modName, separator)
 	}
-	// Force -mod=mod so package loading does not fail on a repository that
-	// vendors its dependencies. During a major upgrade the go.mod already
-	// points at the new /vN path while vendor/modules.txt still records the
-	// old one; under the default -mod=vendor this inconsistency makes
-	// `go list` error out and no imports get rewritten. -mod=mod ignores the
-	// vendor directory for loading, which is all we need to enumerate and
-	// rewrite the source files.
+	// Load with -mod=mod so packages.Load does not fail on a vendored repo
+	// mid-upgrade: go.mod already points at the new /vN path while
+	// vendor/modules.txt still records the old one, and under -mod=vendor
+	// that inconsistency makes `go list` error out before any import is
+	// rewritten. syncVendor re-syncs the vendor tree afterward.
 	c := &packages.Config{
 		Mode:       packages.NeedName | packages.NeedFiles,
 		Tests:      true,
