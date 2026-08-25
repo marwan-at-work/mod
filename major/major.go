@@ -107,9 +107,29 @@ func Run(dir, op, modName string, tag int) error {
 		fmt.Println("running go mod tidy...")
 		cmd := exec.Command("go", "mod", "tidy")
 		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
-		return cmd.Run()
+		if err := cmd.Run(); err != nil {
+			return err
+		}
 	}
-	return nil
+	return syncVendor(dir)
+}
+
+// syncVendor re-syncs the vendor directory after a major upgrade. Loading was
+// done with -mod=mod, so the vendor tree still records the pre-upgrade module
+// path and would leave the repository in an inconsistent state. If there is no
+// vendor directory there is nothing to do.
+func syncVendor(dir string) error {
+	if _, err := os.Stat(filepath.Join(dir, "vendor")); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	fmt.Println("running go mod vendor...")
+	cmd := exec.Command("go", "mod", "vendor")
+	cmd.Dir = dir
+	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	return cmd.Run()
 }
 
 func isGopkgin(s string) bool {

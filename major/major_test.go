@@ -156,3 +156,12 @@ var _ = unrelated.X
 		t.Fatalf("stale /v9 import left behind:\n%s", gotStr)
 	}
 }
+
+func TestSyncVendorNoVendorDir(t *testing.T) {
+	// With no vendor directory present, syncVendor must be a no-op and must
+	// not attempt to run `go mod vendor`.
+	dir := t.TempDir()
+	if err := syncVendor(dir); err != nil {
+		t.Fatalf("syncVendor with no vendor dir returned error: %v", err)
+	}
+}
