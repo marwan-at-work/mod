@@ -58,27 +58,11 @@ func Run(dir, op, modName string, tag int) error {
 		}
 	}
 	if client {
-		// It would be nicer to use modFile.AddRequire
-		// and modFile.DropRequire, but they do not
-		// preserve block location.
-		var majorExists bool
-		for _, req := range modFile.Require {
-			if req.Mod.Path == newModPath {
-				majorExists = true
-				break
-			}
+		if err := modFile.DropRequire(modName); err != nil {
+			return fmt.Errorf("dropping old module from go.mod: %w", err)
 		}
-		if majorExists {
-			return nil
-		} else {
-			for _, req := range modFile.Require {
-				if req.Mod.Path == modName {
-					req.Mod.Path = newModPath
-					req.Mod.Version = "latest"
-					break
-				}
-			}
-			modFile.SetRequire(modFile.Require)
+		if err := modFile.AddRequire(newModPath, "latest"); err != nil {
+			return fmt.Errorf("adding new module to go.mod: %w", err)
 		}
 	} else {
 		modFile.Module.Syntax.Token[1] = newModPath
