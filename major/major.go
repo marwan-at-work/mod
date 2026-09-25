@@ -104,6 +104,7 @@ func Run(dir, op, modName string, tag int) error {
 	if client {
 		fmt.Println("running go mod tidy...")
 		cmd := exec.Command("go", "mod", "tidy")
+		cmd.Dir = dir
 		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 		if err := cmd.Run(); err != nil {
 			return err
